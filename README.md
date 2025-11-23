@@ -16,8 +16,8 @@ This repository contains the functional client-side prototype built to validate 
 
 To run this code, follow thsi steps:
 
-Clone this repository: git clone Techconnect.html
+Clone this repository: git clone https://github.com/Satyam-12345/TechConnect.git
 
-Open the index.html file in any modern web browser.
+Open the Techconnect.html file in any modern web browser.
 
-Click the microphone and speak your commands!
+Click the microphone and speak your commands as instructed by the application.
