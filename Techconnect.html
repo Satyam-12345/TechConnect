@@ -1,0 +1,1773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechConnect- A Way To Connect You With Technology</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Setup for Inter font and general styling */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        
+        :root {
+            --primary-color: #4f46e5;
+            --secondary-color: #3b82f6;
+            --background-color: #f8fafc;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 1.5rem; /* Rounded corners for all cards */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        /* Microphone Button Styling */
+        #micButton {
+            transition: all 0.3s ease;
+            animation: pulse 1.5s infinite;
+        }
+
+        #micButton.listening {
+            animation: listeningPulse 1.2s infinite;
+            background-color: #ef4444; /* Red while listening */
+            box-shadow: 0 0 0 10px rgba(239, 68, 68, 0.3);
+        }
+        
+        #micButton.ready {
+            animation: none;
+            box-shadow: 0 0 0 0 var(--primary-color);
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 15px rgba(79, 70, 229, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(79, 70, 229, 0);
+            }
+        }
+
+        @keyframes listeningPulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        /* Utility for input focus styles */
+        .input-style {
+            padding: 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        .input-style:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
+            outline: none;
+        }
+
+        /* Custom scrollbar for content containers */
+        #train-results-container, #diagnosis-container, #content-viewer {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1rem; /* Added padding to all scrollable containers */
+        }
+
+        /* Additional styles for steps */
+        .step-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            margin-right: 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        .step-pill.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .step-pill.inactive {
+            background-color: #e5e7eb;
+            color: #4b5563;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="appContainer" class="w-full max-w-5xl">
+        <header class="text-center mb-6 relative">
+            <h1 class="text-4xl font-extrabold text-gray-900 mb-2">TechConnect- A Way To Connect You With Technology</h1>
+            <p id="assistantStatus" class="text-lg text-gray-500">We have various sections in our application like transport, healthcare, education, entertainment. PLease say open section name, for example, open transport , open healthcare, open education, open entertainment.</p>
+            
+            <div class="absolute top-0 right-0 md:right-4">
+                <label for="language-select" class="sr-only">Select Language</label>
+                <select id="language-select" onchange="setLanguage(this.value)" class="input-style text-sm p-2 bg-white shadow-md">
+                    <option value="en-US">English</option>
+                    <option value="hi-IN">Hindi (हिंदी)</option>
+                </select>
+            </div>
+        </header>
+
+        <div id="content" class="min-h-[400px] p-6 card">
+            </div>
+
+        <div class="mt-8 flex flex-col items-center p-6 card">
+            <button id="micButton" onclick="toggleListening()" 
+                    class="ready bg-indigo-600 text-white w-20 h-20 rounded-full flex items-center justify-center shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mic">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                    <line x1="12" y1="19" x2="12" y2="23"></line>
+                    <line x1="8" y1="23" x2="16" y2="23"></line>
+                </svg>
+            </button>
+            <p id="micStatus" class="mt-3 text-sm font-medium text-gray-700">Tap to talk</p>
+            <div id="transcriptOutput" class="mt-2 text-center text-indigo-600 italic h-6"></div>
+            <div id="apiSupportWarning" class="mt-2 text-center text-red-500 text-sm hidden">
+                Web Speech API not fully supported in this browser. Voice features will not work.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- GLOBAL STATE & MOCK DATA ---
+        const appState = {
+            activeSection: 'home', 
+            isListening: false,
+            voiceSupported: (window.SpeechRecognition || window.webkitSpeechRecognition) && window.SpeechSynthesisUtterance,
+            currentLanguageCode: 'en-US',
+            travel: {
+                mode: 'Train',
+                subSection: 'booking', // 'booking' or 'pnr'
+                bookingStep: 0, // <--- NEW: 0: source, 1: destination, 2: coach, 3: date, 4: search/results
+                source: '',
+                destination: '',
+                date: '',
+                coach: 'Sleeper (SL)',
+                results: null,
+                selectedTrain: null,
+                paymentStep: 0, // 0: initial, 1: payment method, 2: details, 3: booking details, 4: summary
+                paymentMethod: '',
+                pnrNumber: '',
+                userDetails: { name: '', aadhar: '', age: '', gender: '' },
+            },
+            healthcare: {
+                step: 0, // 0: initial, 1: listening, 2: diagnosis, 3: treatment
+                symptoms: '',
+                diagnosis: null,
+            },
+            education: {
+                step: 0, // 0: initial, 1: level/topic, 2: content
+                level: '',
+                topic: '',
+            },
+            entertainment: {
+                category: 'Movies', // 'Movies', 'TV Shows', 'Cartoons'
+                step: 0, // 0: initial, 1: watching
+                title: '',
+                video: null,
+            }
+        };
+
+        const languageMap = {
+            'en-US': { 
+                code: 'en-US', 
+                greeting: "Welcome to TechConnect - away to connect with the technology. We have various sections in our application like transport, healthcare, education, entertainment. PLease say open section name, for example, open transport , open healthcare, open education, open entertainment.",
+                home_title: "Home",
+                travel_title: "Travel Booking",
+                health_title: "Healthcare Assistant",
+                edu_title: "Education Hub",
+                enter_title: "Entertainment",
+                book_ticket: "I want to book a ticket",
+                need_doctor: "I need a doctor",
+                want_learn: "I want to learn something",
+                go_home: "go home",
+                pnr_status: "check pnr status",
+                travel_train: "train",
+                travel_flight: "flight",
+            },
+            'hi-IN': { 
+                code: 'hi-IN', 
+                greeting: "टेककनेक्ट में आपका स्वागत है - तकनीक से जुड़ने का एक बेहतरीन तरीका। हमारे एप्लिकेशन में परिवहन, स्वास्थ्य सेवा, शिक्षा, मनोरंजन जैसे कई सेक्शन हैं। कृपया सेक्शन का नाम बताएँ, जैसे कि ओपन ट्रांसपोर्ट, ओपन हेल्थकेयर, ओपन एजुकेशन, ओपन एंटरटेनमेंट।",
+                home_title: "होम",
+                travel_title: "यात्रा बुकिंग",
+                health_title: "स्वास्थ्य सहायक",
+                edu_title: "शिक्षा केंद्र",
+                enter_title: "मनोरंजन",
+                book_ticket: "मुझे टिकट बुक करनी है",
+                need_doctor: "मुझे डॉक्टर चाहिए",
+                want_learn: "मुझे कुछ सीखना है",
+                go_home: "होम पर जाओ",
+                pnr_status: "पीएनआर स्टेटस चेक करें",
+                travel_train: "ट्रेन",
+                travel_flight: "हवाई जहाज",
+            }
+        };
+        
+        const mockTrainData = [
+            { 
+                name: 'Duronto Express', number: '12222', time: '18:00', duration: '12 hrs', price: 650, 
+                classes: [
+                    { name: 'Sleeper (SL)', availability: 45, price: 650 },
+                    { name: 'AC 3 Tier (3A)', availability: 12, price: 1600 }
+                ]
+            },
+            { 
+                name: 'Rajdhani Special', number: '22824', time: '22:30', duration: '10 hrs', price: 2100,
+                classes: [
+                    { name: 'AC 2 Tier (2A)', availability: 7, price: 2100 },
+                    { name: 'AC First Class (1A)', availability: 3, price: 3500 }
+                ]
+            },
+        ];
+
+        const mockPNRStatus = {
+            '1234567890': {
+                train: 'Rajdhani Special',
+                date: '25 Nov 2025',
+                route: 'Delhi to Mumbai',
+                price: 2100,
+                coach: 'AC 2 Tier (2A)',
+                status: 'Confirmed',
+                seat: 'A-15',
+                start: '22:30',
+                end: '08:30',
+            },
+        };
+
+        const mockDiagnosis = {
+            'fever': {
+                name: 'Viral Fever',
+                advice: 'Rest, stay hydrated, and avoid strenuous activity. The fever should break in 2-3 days.',
+                dosage: 'Take Paracetamol (500mg) every 6 hours if fever is above 100°F. Do not exceed 4 doses in 24 hours.',
+                advice_hi: 'आराम करें, हाइड्रेटेड रहें, और ज़ोरदार गतिविधियों से बचें। बुखार 2-3 दिनों में उतर जाना चाहिए।',
+                dosage_hi: 'यदि बुखार 100°F से ऊपर है तो हर 6 घंटे में पैरासिटामोल (500mg) लें। 24 घंटों में 4 खुराक से अधिक न लें।',
+            },
+            'cough': {
+                name: 'Common Cold',
+                advice: 'Steam inhalation and gargling with warm salt water will help. Get plenty of sleep.',
+                dosage: 'Use a common cough syrup (Dextromethorphan base) twice a day or as directed on the bottle.',
+                advice_hi: 'गर्म पानी में नमक मिलाकर गरारे करें और भाप लें। पर्याप्त नींद लें।',
+                dosage_hi: 'सामान्य कफ सिरप (डेक्सट्रोमेथॉर्फ़न आधारित) दिन में दो बार या बोतल पर दिए निर्देशानुसार लें।',
+            }
+        };
+        
+        const mockEducationContent = {
+            'btech-thermodynamics': {
+                title: 'Engineering Mathematics: Differential Equations',
+                video: 'https://www.youtube.com/embed/jC7914K1-5o', // Mock YouTube link
+                text: 'Differential equations are crucial in modeling systems like circuits and fluid flow. They describe how a quantity changes relative to another. This is key for B.Tech students.',
+                quiz: ['What is the order of $dy/dx + y = 0$?', 'Find the general solution of $y\' = x^2$.'],
+                title_hi: 'इंजीनियरिंग गणित: अवकल समीकरण',
+                text_hi: 'परिपथों और द्रव प्रवाह जैसी प्रणालियों के मॉडलिंग में अवकल समीकरण महत्वपूर्ण हैं। वे वर्णन करते हैं कि एक मात्रा दूसरे के सापेक्ष कैसे बदलती है। यह बीटेक छात्रों के लिए महत्वपूर्ण है।',
+                quiz_hi: ['$dy/dx + y = 0$ का क्रम क्या है?', '$y\' = x^2$ का सामान्य समाधान ज्ञात करें।'],
+            },
+        };
+
+        const mockEntertainmentContent = {
+    'Movies': {
+        list: ['Dune', 'Inception', 'Parasite'],
+        // When a user selects a movie, we will determine the video based on the title.
+        // The default video will be used if a specific title isn't detected.
+        videos: {
+            'Dune': 'https://www.youtube.com/embed/n9xhJrPXop4', // Dune Official Trailer
+            'Inception': 'https://www.youtube.com/embed/zp_YGmAoht0', // Inception Official Trailer
+            'Parasite': 'https://www.youtube.com/embed/SEUXfv87Wpk', // Parasite Official Trailer
+            'default': 'https://www.youtube.com/embed/n9xhJrPXop4' // Fallback
+        }
+    },
+    'TV Shows': {
+        list: ['Game of Thrones', 'Friends', 'Stranger Things'],
+        videos: {
+            'Game of Thrones': 'https://www.youtube.com/embed/bjqEWgDVPe0', // GoT Season 1 Trailer
+            'Friends': 'https://www.youtube.com/embed/rP1jG66V4H0', // Mock Friends best moments (Used a general Friends playlist ID to avoid complex structure)
+            'Stranger Things': 'https://www.youtube.com/embed/4DknR_UNXbQ', // Stranger Things 5 Trailer (Simulated)
+            'default': 'https://www.youtube.com/embed/bjqEWgDVPe0' // Fallback
+        }
+    },
+    'Cartoons': {
+        list: ['Tom and Jerry', 'Doraemon', 'Chhota Bheem'],
+        videos: {
+            'Tom and Jerry': 'https://www.youtube.com/embed/cqyziA30whE', // Tom & Jerry Compilation
+            'Doraemon': 'https://www.youtube.com/embed/XM2uPnCKcsE', // Doraemon All New Season Trailer
+            'Chhota Bheem': 'https://www.youtube.com/embed/YECSe4vKFl8', // Chhota Bheem full video
+            'default': 'https://www.youtube.com/embed/cqyziA30whE' // Fallback
+        }
+    }
+};
+
+
+
+        // --- DOM REFERENCES ---
+        const contentEl = document.getElementById('content');
+        const micButtonEl = document.getElementById('micButton');
+        const micStatusEl = document.getElementById('micStatus');
+        const transcriptOutputEl = document.getElementById('transcriptOutput');
+        const assistantStatusEl = document.getElementById('assistantStatus');
+        const apiSupportWarningEl = document.getElementById('apiSupportWarning');
+        const languageSelectEl = document.getElementById('language-select');
+        
+        let recognition = null;
+        const synth = window.speechSynthesis;
+        
+        // --- VOICE UTILITIES (Unchanged from original code) ---
+        
+        /** Sets the language for the entire application */
+        function setLanguage(code) {
+            appState.currentLanguageCode = code;
+            if (recognition) {
+                recognition.lang = code;
+            }
+            // Update UI/Greeting based on new language
+            speak(languageMap[code].greeting);
+            // Reset complex flow state when language changes
+            appState.travel.paymentStep = 0;
+            appState.travel.results = null;
+            appState.healthcare.step = 0;
+            appState.education.step = 0;
+            appState.entertainment.step = 0;
+            render();
+        }
+
+        /** Initializes the Speech Recognition API */
+        function setupVoice() {
+            if (!appState.voiceSupported) {
+                apiSupportWarningEl.classList.remove('hidden');
+                speak("I'm sorry, your browser does not fully support the necessary voice features.");
+                return;
+            }
+            
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = appState.currentLanguageCode;
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = () => {
+                appState.isListening = true;
+                micButtonEl.classList.remove('ready');
+                micButtonEl.classList.add('listening');
+                micStatusEl.textContent = 'Listening...';
+                transcriptOutputEl.textContent = '';
+                assistantStatusEl.textContent = 'Speak your command now...';
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                transcriptOutputEl.textContent = `You said: "${transcript}"`;
+                console.log('Transcript:', transcript);
+                processVoiceCommand(transcript);
+            };
+
+            recognition.onend = () => {
+                appState.isListening = false;
+                micButtonEl.classList.remove('listening');
+                micButtonEl.classList.add('ready');
+                micStatusEl.textContent = 'Tap to talk';
+                if (transcriptOutputEl.textContent === "") {
+                    assistantStatusEl.textContent = 'How can I help you today?';
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error', event.error);
+                appState.isListening = false;
+                micButtonEl.classList.remove('listening');
+                micButtonEl.classList.add('ready');
+                micStatusEl.textContent = 'Tap to talk';
+                speak("I didn't catch that, please try again.");
+                assistantStatusEl.textContent = "There was an error. Please tap to try again.";
+            };
+
+            // Initial greeting
+            speak(languageMap[appState.currentLanguageCode].greeting);
+        }
+
+        /** Text-to-Speech function */
+        function speak(text) {
+            if (!appState.voiceSupported || !synth) return;
+            // Cancel any ongoing speech
+            if (synth.speaking) {
+                synth.cancel();
+            }
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.pitch = 1.0;
+            utterance.rate = 1.1;
+            utterance.volume = 1.0;
+            utterance.lang = appState.currentLanguageCode; 
+            
+            utterance.onstart = () => {
+                micButtonEl.disabled = true;
+                micButtonEl.classList.add('opacity-50');
+            };
+            utterance.onend = () => {
+                micButtonEl.disabled = false;
+                micButtonEl.classList.remove('opacity-50');
+            };
+            synth.speak(utterance);
+        }
+
+        /** Starts or stops the listening process */
+        function toggleListening() {
+            if (!appState.voiceSupported) {
+                speak("Voice features are unavailable in this browser.");
+                return;
+            }
+
+            if (appState.isListening) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        }
+
+        // --- COMMAND PROCESSING ---
+        
+        /** Core logic to handle the transcribed voice command */
+        function processVoiceCommand(transcript) {
+            const lowerTranscript = transcript.toLowerCase();
+            assistantStatusEl.textContent = 'Processing command...';
+
+            // 1. GLOBAL NAVIGATION
+            if (lowerTranscript.includes('go to home') || lowerTranscript.includes('go home') || lowerTranscript.includes('ghar jao')) {
+                setSection('home');
+                speak(appState.currentLanguageCode === 'hi-IN' ? "होम स्क्रीन पर लौट रहे हैं।" : "Returning to the home screen.");
+                return;
+            }
+            
+            // 2. INTENT DETECTION & SECTION NAVIGATION
+            if (lowerTranscript.includes('open travel') || lowerTranscript.includes('go to travel') || lowerTranscript.includes('yatra kholo') || 
+                lowerTranscript.includes('ticket book karni hai') || lowerTranscript.includes('mujhe ticket book') || lowerTranscript.includes('jaana hai')) {
+                setSection('travel');
+                // Automatically route to a travel sub-section if specified
+                if (lowerTranscript.includes('pnr') || lowerTranscript.includes('status') || lowerTranscript.includes('check status')) {
+                    appState.travel.subSection = 'pnr';
+                } else if (lowerTranscript.includes('flight')) {
+                    appState.travel.mode = 'Flight';
+                    appState.travel.subSection = 'booking';
+                } else {
+                    appState.travel.mode = 'Train';
+                    appState.travel.subSection = 'booking';
+                }
+                renderTravelSection();
+                speak(appState.currentLanguageCode === 'hi-IN' ? "यात्रा अनुभाग में आपका स्वागत है। आप क्या करना चाहते हैं?" : "Welcome to the travel section. please tell me the source where will you board the train ?");
+                return;
+            }
+
+            if (lowerTranscript.includes('open healthcare') || lowerTranscript.includes('go to health') || 
+                lowerTranscript.includes('doctor chahiye') || lowerTranscript.includes('bimari') || lowerTranscript.includes('dawai')) {
+                setSection('healthcare');
+                processHealthcareCommand(lowerTranscript); // Directly process command for initial step
+                return;
+            }
+
+            if (lowerTranscript.includes('open education') || lowerTranscript.includes('go to education') ||
+                lowerTranscript.includes('sikhna hai') || lowerTranscript.includes('course')) {
+                setSection('education');
+                processEducationCommand(lowerTranscript); // Directly process command for initial step
+                return;
+            }
+
+            if (lowerTranscript.includes('open entertainment') || lowerTranscript.includes('go to entertainment') ||
+                lowerTranscript.includes('movie dekhni hai') || lowerTranscript.includes('gaana sunna hai') || lowerTranscript.includes('cartoon')) {
+                setSection('entertainment');
+                processEntertainmentCommand(lowerTranscript);
+                return;
+            }
+            
+            // 3. SECTION-SPECIFIC COMMANDS
+            if (appState.activeSection === 'travel') {
+                processTravelCommand(lowerTranscript);
+                return;
+            } else if (appState.activeSection === 'healthcare') {
+                processHealthcareCommand(lowerTranscript);
+                return;
+            } else if (appState.activeSection === 'education') {
+                processEducationCommand(lowerTranscript);
+                return;
+            } else if (appState.activeSection === 'entertainment') {
+                processEntertainmentCommand(lowerTranscript);
+                return;
+            }
+
+
+            // 4. FALLBACK
+            speak(appState.currentLanguageCode === 'hi-IN' ? "मैं आपका आदेश समझ नहीं पाई। कृपया 'यात्रा खोलो' या 'होम पर जाओ' कहें।" : "I heard your request, but I couldn't process that command. Please try saying 'Open Travel' or 'Go to home'.");
+        }
+        
+        // Helper to capitalize words (e.g., 'new york' -> 'New York')
+        function capitalizeWords(str) {
+            if (!str) return '';
+            return str.toLowerCase().split(' ').map((word) => {
+                if (!word) return '';
+                return (word.charAt(0).toUpperCase() + word.slice(1));
+            }).join(' ');
+        }
+        
+        // Helper to extract date in DD MM YYYY format
+        function extractDate(transcript) {
+            const dateMatch = transcript.match(/(\d{1,2}) (january|february|march|april|may|june|july|august|september|october|november|december|june) (\d{4})/i);
+            if (dateMatch) {
+                const [_, day, month, year] = dateMatch;
+                // Simple way to parse month from name
+                const date = new Date(Date.parse(month + " 1, " + year));
+                const monthIndex = date.getMonth() + 1;
+                
+                const paddedDay = day.padStart(2, '0');
+                const paddedMonth = String(monthIndex).padStart(2, '0');
+                return `${paddedDay}-${paddedMonth}-${year}`; // DD-MM-YYYY format
+            }
+            
+            // Handle tomorrow/kal
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            if (transcript.includes('tomorrow') || transcript.includes('kal')) {
+                const d = String(tomorrow.getDate()).padStart(2, '0');
+                const m = String(tomorrow.getMonth() + 1).padStart(2, '0');
+                const y = tomorrow.getFullYear();
+                return `${d}-${m}-${y}`;
+            }
+            
+            return '';
+        }
+
+        // --- TRAVEL COMMANDS & RENDERING (UPDATED FOR STEP-BY-STEP FLOW) ---
+
+        /** Handles multi-step commands for Travel */
+        /** Handles multi-step commands for Travel */
+        // --- TRAVEL COMMANDS & RENDERING (UPDATED FOR STEP-BY-STEP FLOW) ---
+
+        /** Handles multi-step commands for Travel */
+        function processTravelCommand(transcript) {
+            const t = transcript.toLowerCase();
+            const travelState = appState.travel;
+            const currentLang = appState.currentLanguageCode;
+
+            // --- Switch Travel Sub-section (PNR or Booking) ---
+            if (t.includes(languageMap[currentLang].pnr_status) || t.includes('pnr')) {
+                travelState.subSection = 'pnr';
+                travelState.bookingStep = 0;
+                travelState.results = null;
+                travelState.paymentStep = 0;
+                renderTravelSection();
+                speak(currentLang === 'hi-IN' ? "पीएनआर स्टेटस सेक्शन खुल गया है। कृपया अपना पीएनआर नंबर बताएं।" : "PNR Status section opened. Please state your PNR number.");
+                return;
+            }
+            if (t.includes('booking') || t.includes(languageMap[currentLang].book_ticket) || travelState.subSection === 'booking') {
+                travelState.subSection = 'booking';
+            }
+
+
+            // --- A. Train Booking Flow: Step-by-Step Prompting (Source, Dest, Coach, Date) ---
+            if (travelState.subSection === 'booking' && travelState.mode === 'Train' && !travelState.results && travelState.paymentStep === 0) {
+                let updated = false;
+                
+                // Step 0: Ask for SOURCE
+                if (travelState.bookingStep === 0) {
+                    const sourceMatch = t.match(/(from|leaving|source|se)?\s*([a-z\s]+)$/);
+                    if (sourceMatch && sourceMatch[2] && sourceMatch[2].length > 2) {
+                        travelState.source = capitalizeWords(sourceMatch[2].trim().replace(/ the /g, ' '));
+                        travelState.bookingStep = 1;
+                        updated = true;
+                    }
+                }
+
+                // Step 1: Ask for DESTINATION
+                else if (travelState.bookingStep === 1) {
+                    const destinationMatch = t.match(/(to|destined for|destination|tak)?\s*([a-z\s]+)$/);
+                    if (destinationMatch && destinationMatch[2] && destinationMatch[2].length > 2) {
+                        travelState.destination = capitalizeWords(destinationMatch[2].trim().replace(/ the /g, ' '));
+                        travelState.bookingStep = 2;
+                        updated = true;
+                    }
+                }
+
+                // Step 2: Ask for COACH TYPE
+                else if (travelState.bookingStep === 2) {
+                    if (t.includes('sleeper') || t.includes('shayan')) { travelState.coach = 'Sleeper (SL)'; updated = true; }
+                    else if (t.includes('3ac') || t.includes('third ac')) { travelState.coach = 'AC 3 Tier (3A)'; updated = true; }
+                    else if (t.includes('2ac') || t.includes('second ac')) { travelState.coach = 'AC 2 Tier (2A)'; updated = true; }
+                    else if (t.includes('1ac') || t.includes('first class')) { travelState.coach = 'AC First Class (1A)'; updated = true; }
+                    
+                    if (updated) {
+                         travelState.bookingStep = 3;
+                    } else if(t.includes('next') || t.includes('skip') || t.includes('bad mein')) {
+                        travelState.coach = 'Sleeper (SL)';
+                        travelState.bookingStep = 3;
+                        updated = true;
+                    }
+                }
+                
+                // Step 3: Ask for DATE
+                else if (travelState.bookingStep === 3) {
+                    const dateVal = extractDate(t);
+                    if (dateVal) { 
+                        travelState.date = dateVal; 
+                        travelState.bookingStep = 4; // Ready to search
+                        updated = true;
+                    }
+                }
+
+                // Step 4: Finalize & Search
+                if (travelState.bookingStep === 4 || t.includes('search') || t.includes('khojo') || t.includes('book')) {
+                    if (travelState.source && travelState.destination && travelState.date) {
+                        handleBooking(); // Call the search function
+                        return;
+                    } else {
+                        travelState.bookingStep = 0; 
+                        if (travelState.source) travelState.bookingStep = 1;
+                        if (travelState.destination) travelState.bookingStep = 2;
+                        if (travelState.coach && travelState.bookingStep < 3) travelState.bookingStep = 3;
+                        if (travelState.date && travelState.bookingStep < 4) travelState.bookingStep = 4;
+                        updated = true;
+                    }
+                }
+
+                if (updated) {
+                    renderTravelSection(); 
+                    return;
+                }
+                
+                renderTravelSection();
+                return;
+            }
+
+            // --- B. Result Selection / Payment / PNR Flows ---
+            
+            // Check for 'go back' from search results
+            if (travelState.results && (t.includes('go back') || t.includes('piche jao'))) {
+                travelState.results = null;
+                travelState.bookingStep = 0; // Go back to start of booking
+                renderTravelSection();
+                speak(currentLang === 'hi-IN' ? "ठीक है, हम बुकिंग के पहले चरण पर वापस जा रहे हैं।" : "Okay, returning to the start of the booking process.");
+                return;
+            }
+
+            if (travelState.subSection === 'booking' && travelState.results && travelState.paymentStep === 0) {
+                let selectedTrain = null;
+
+                if (t.includes('duronto')) { selectedTrain = mockTrainData[0]; }
+                else if (t.includes('rajdhani')) { selectedTrain = mockTrainData[1]; }
+
+                const priceMatch = t.match(/for (\d+)/) || t.match(/(\d+) rupees/) || t.match(/(\d+)$/);
+                if (priceMatch) {
+                    const price = parseInt(priceMatch[1], 10);
+                    selectedTrain = mockTrainData.find(train => train.classes.some(c => c.price === price));
+                }
+
+                if (selectedTrain) {
+                    travelState.selectedTrain = selectedTrain;
+                    travelState.paymentStep = 1; // Move to User Details
+                    renderTravelSection();
+                    
+                    // SPOKEN GUIDE FOR FORM FILLING
+                    const formGuideEN = `You have selected ${selectedTrain.name}. Now, please provide the passenger details. First, tell me your name.`;
+                    const formGuideHI = `आपने ${selectedTrain.name} को चुना है। अब, कृपया यात्री का विवरण बताएं। पहले, मुझे अपना नाम बताएं।`;
+                    speak(currentLang === 'hi-IN' ? formGuideHI : formGuideEN);
+                    assistantStatusEl.textContent = currentLang === 'hi-IN' ? formGuideHI : formGuideEN;
+                    
+                    return;
+                } else if (t.includes('book') || t.includes('chuno')) {
+                    speak(currentLang === 'hi-IN' ? "कृपया ट्रेन का नाम या वह मूल्य बताएं जिस पर आप बुक करना चाहते हैं।" : "Please state the train name or the price you wish to book.");
+                }
+                return;
+            }
+            
+            // Step 1: User Details - NEW SEQUENTIAL FLOW
+            if (travelState.paymentStep === 1) {
+                let updated = false;
+                
+                // 1. Try to extract/fill Name
+                if (!travelState.userDetails.name) {
+                    // Try for structured input first
+                    const nameMatch = t.match(/(my name is|name is|naam hai|mera naam) (.*?)( age | and | is | aur | $)/);
+                    if (nameMatch && nameMatch[2]) { 
+                        travelState.userDetails.name = capitalizeWords(nameMatch[2].trim()); 
+                        updated = true; 
+                    } else if (t.length > 3 && !t.includes('pay') && !t.includes('bhugtan') && !t.includes('age') && !t.includes('gender')) {
+                         // Fallback: Assume the whole transcript is the name if short and not a command
+                        travelState.userDetails.name = capitalizeWords(t.trim());
+                        updated = true;
+                    }
+                }
+                
+                // 2. Try to extract Age (Can be anywhere in the speech)
+                const ageMatch = t.match(/(age|umar) (is|hai)? (\d{1,3})/);
+                if (ageMatch && ageMatch[3]) { 
+                    travelState.userDetails.age = ageMatch[3]; 
+                    updated = true; 
+                }
+
+                // 3. Try to extract Gender (Can be anywhere in the speech)
+                const genderMatch = t.match(/(male|female|purush|mahila|m|f)/);
+                if (genderMatch) { 
+                    travelState.userDetails.gender = genderMatch[0].startsWith('m') || genderMatch[0].startsWith('p') ? 'Male' : 'Female'; 
+                    updated = true; 
+                }
+
+                // --- SEQUENTIAL STEPPING AND PROMPT LOGIC ---
+                let nextPrompt = '';
+                if (!travelState.userDetails.name) {
+                    nextPrompt = currentLang === 'hi-IN' ? "आपका नाम क्या है?" : "What is your name?";
+                } else if (!travelState.userDetails.age) {
+                    nextPrompt = currentLang === 'hi-IN' ? `धन्यवाद ${travelState.userDetails.name}! अब आपकी आयु क्या है?` : `Thank you ${travelState.userDetails.name}! Now, what is your age?`;
+                } else if (!travelState.userDetails.gender) {
+                    nextPrompt = currentLang === 'hi-IN' ? "आपका लिंग क्या है? पुरुष या महिला?" : "What is your gender? Male or Female?";
+                } else {
+                    nextPrompt = currentLang === 'hi-IN' ? "सभी विवरण दर्ज कर लिए गए हैं। कृपया 'भुगतान' बोलें।" : "All details are entered. Please say 'pay'.";
+                }
+
+
+                // Check if ready to proceed automatically OR if payment command is given
+                if ((travelState.userDetails.name && travelState.userDetails.age && travelState.userDetails.gender) || t.includes('pay') || t.includes('bhugtan')) {
+                    if (travelState.userDetails.name && travelState.userDetails.age && travelState.userDetails.gender) {
+                        travelState.paymentStep = 2; // Move to Payment Method
+                        renderTravelSection();
+                        speak(currentLang === 'hi-IN' ? "सभी विवरण प्राप्त हुए। भुगतान विधि चुनें।" : "All details received. Please select a payment method.");
+                        return;
+                    } else {
+                        // Not enough data, re-prompt based on missing field
+                        speak(nextPrompt);
+                        assistantStatusEl.textContent = nextPrompt;
+                    }
+                }
+
+                if (updated) {
+                    renderTravelSection();
+                    speak(nextPrompt);
+                    assistantStatusEl.textContent = nextPrompt;
+                } else {
+                    renderTravelSection(); 
+                    if (assistantStatusEl.textContent.includes('Please state passenger name') || assistantStatusEl.textContent.includes('यात्री का नाम, आयु')) {
+                        speak(nextPrompt);
+                        assistantStatusEl.textContent = nextPrompt;
+                    }
+                }
+                return;
+            }
+            
+            // Step 2 & 3: Payment Flow (No change here)
+            if (travelState.paymentStep === 2) {
+                if (t.includes('upi') || t.includes('up')) { travelState.paymentMethod = 'UPI'; travelState.paymentStep = 3; }
+                else if (t.includes('cash')) { travelState.paymentMethod = 'Cash/Counter'; travelState.paymentStep = 4; } // Direct to summary for mock 'Cash'
+                else if (t.includes('card') || t.includes('kard')) { travelState.paymentMethod = 'Card'; travelState.paymentStep = 3; }
+
+                if (travelState.paymentStep === 3) {
+                    renderTravelSection();
+                    speak(currentLang === 'hi-IN' ? `कृपया अपना ${travelState.paymentMethod} नंबर या आईडी बताएं।` : `Please state your ${travelState.paymentMethod} number or ID.`);
+                } else if (travelState.paymentStep === 4) {
+                    handleBookingConfirmation(travelState.paymentMethod);
+                } else {
+                    speak(currentLang === 'hi-IN' ? "कृपया भुगतान विधि चुनें: यूपीआई, कार्ड या कैश?" : "Please choose a payment method: UPI, Card, or Cash?");
+                }
+                return;
+            }
+
+            if (travelState.paymentStep === 3) {
+                const detailsMatch = t.match(/number (\d+)/) || t.match(/(\d+) daaliye/) || t.match(/(\d{4,16})/);
+                if (detailsMatch) {
+                    travelState.paymentDetails = detailsMatch[1].replace(/\D/g, '').substring(0, 16); 
+                    travelState.paymentStep = 4;
+                    handleBookingConfirmation(travelState.paymentMethod);
+                } else {
+                    speak(currentLang === 'hi-IN' ? `कृपया अपना ${travelState.paymentMethod} नंबर या यूपीआई आईडी बताएं।` : `Please state your ${travelState.paymentMethod} number or UPI ID.`);
+                }
+                return;
+            }
+            
+            // --- C. PNR Status Flow (No change here) ---
+            if (travelState.subSection === 'pnr') {
+                 const pnrMatch = t.match(/pnr (number | is )?(\d{10})/);
+                 const numberMatch = t.match(/(\d{10})/);
+                 let pnr = null;
+
+                 if (pnrMatch) { pnr = pnrMatch[2]; } else if (numberMatch) { pnr = numberMatch[1]; }
+
+                 if (pnr) {
+                     handlePNRSearch(pnr);
+                     return;
+                 } else {
+                     speak(currentLang === 'hi-IN' ? "कृपया अपना 10 अंकों का पीएनआर नंबर बताएं।" : "Please state your 10-digit PNR number.");
+                 }
+                 return;
+            }
+        }
+        /** Handles the initial search action for Train Booking */
+        // ... (rest of the script before handleBooking)
+
+        /** Handles the initial search action for Train Booking */
+        /** Handles the initial search action for Train Booking */
+        function handleBooking() {
+            const { mode, source, destination, date, coach } = appState.travel;
+            const currentLang = appState.currentLanguageCode;
+
+            // ... (Validation check remains) ...
+
+            if (!source || !destination || !date) {
+                const message = currentLang === 'hi-IN' ? "कृपया स्रोत, गंतव्य और यात्रा की तारीख भरें।" : "Please fill in the source, destination, and travel date.";
+                speak(message);
+                assistantStatusEl.textContent = message;
+                return;
+            }
+
+            // Simulate the search result retrieval
+            appState.travel.results = mockTrainData.map(train => {
+                const selectedClass = train.classes.find(c => c.name === coach);
+                return { ...train, selectedClass };
+            }).filter(train => train.selectedClass);
+
+            appState.travel.paymentStep = 0;
+            
+            // --- NEW CODE: CONSTRUCT DETAILED READOUT FOR RESULTS ---
+            let readoutMessage = currentLang === 'hi-IN' ? 
+                `ट्रेन टिकट की खोज जारी है ${source} से ${destination} के लिए। मुझे ${appState.travel.results.length} ट्रेनें मिलीं।` :
+                `Searching for Train tickets from ${source} to ${destination}. I found ${appState.travel.results.length} trains.`;
+            
+            appState.travel.results.forEach((train, index) => {
+                const price = train.selectedClass.price;
+                const priceText = currentLang === 'hi-IN' ? `कीमत ${price} रुपये है।` : `Price is ${price} rupees.`;
+                const trainInfo = currentLang === 'hi-IN' ? 
+                    `विकल्प ${index + 1}: ${train.name}, प्रस्थान ${train.time} बजे, कोच ${train.selectedClass.name}, ${priceText}` :
+                    `Option ${index + 1}: ${train.name}, departing at ${train.time}, in coach ${train.selectedClass.name}. ${priceText}`;
+                
+                readoutMessage += ` ${trainInfo}.`;
+            });
+            
+            // **UPDATED FINAL PROMPT**
+            const actionPrompt = currentLang === 'hi-IN' ? 
+                `कृपया 'बुक' बोलकर ट्रेन का नाम बताएं, या 'पीछे जाओ' बोलें। उदाहरण: बुक दुरंतो एक्सप्रेस` : 
+                `Please say 'Book' followed by the train name or price to move ahead, or say 'Go Back' to search again. Example: Book Duronto Express.`;
+
+            readoutMessage += ` ${actionPrompt}`;
+
+            // --------------------------------------------------------
+
+            speak(readoutMessage);
+            assistantStatusEl.textContent = currentLang === 'hi-IN' ? 
+                `ट्रेनें मिलीं। कृपया 'बुक [ट्रेन नाम]' या 'पीछे जाओ' बोलें।` : 
+                `Trains found. Please say 'Book [Train Name]' or 'Go Back'.`;
+            
+            renderTravelSection(); 
+        }
+
+// ... (rest of the script)
+
+        /** Handles the final booking confirmation (Unchanged) */
+        function handleBookingConfirmation(method) {
+            const travelState = appState.travel;
+            const currentLang = appState.currentLanguageCode;
+            
+            const mockPNR = '1234567890';
+            const t = travelState.selectedTrain;
+            const c = t.classes.find(cls => cls.name === travelState.coach);
+            
+            const messageEN = `Booking Confirmed! PNR ${mockPNR}. Your ticket is booked for ${travelState.date} in ${travelState.coach} for ₹${c.price}. The train starts at ${t.time} from ${travelState.source}.`;
+            const messageHI = `बुकिंग कन्फर्म! पीएनआर ${mockPNR}। आपका टिकट ${travelState.date} के लिए ${travelState.coach} में ₹${c.price} पर बुक हो गया है। ट्रेन ${travelState.source} से ${t.time} बजे शुरू होगी।`;
+            
+            assistantStatusEl.textContent = currentLang === 'hi-IN' ? messageHI : messageEN;
+            speak(currentLang === 'hi-IN' ? messageHI : messageEN);
+
+            travelState.paymentStep = 4;
+            travelState.finalPNR = mockPNR;
+            renderTravelSection();
+        }
+
+        /** Handles PNR Status Search (Unchanged) */
+        function handlePNRSearch(pnr) {
+            const currentLang = appState.currentLanguageCode;
+            const status = mockPNRStatus[pnr] || null;
+
+            if (status) {
+                appState.travel.pnrNumber = pnr;
+                appState.travel.pnrStatus = status;
+                
+                const messageEN = `PNR Status for ${pnr} is ${status.status}. Train ${status.train} from ${status.route}.`;
+                const messageHI = `पीएनआर ${pnr} का स्टेटस ${status.status} है। ट्रेन ${status.train} ${status.route} के लिए है।`;
+                
+                speak(currentLang === 'hi-IN' ? messageHI : messageEN);
+            } else {
+                appState.travel.pnrNumber = pnr;
+                appState.travel.pnrStatus = { status: 'Not Found', train: '', route: '', date: '' };
+                const messageEN = `PNR ${pnr} not found in our system. Please try again.`;
+                const messageHI = `पीएनआर ${pnr} हमारे सिस्टम में नहीं मिला। कृपया पुनः प्रयास करें।`;
+                speak(currentLang === 'hi-IN' ? messageHI : messageEN);
+            }
+            renderTravelSection();
+        }
+
+        /** Renders the Travel Booking flow based on the current step */
+        function renderTravelSection() {
+            const travelState = appState.travel;
+            const currentLang = appState.currentLanguageCode;
+            const title = currentLang === 'hi-IN' ? 'यात्रा बुकिंग' : 'Travel Booking';
+            
+            let mainContent = '';
+            let statusText = currentLang === 'hi-IN' ? 'कृपया एक उप-अनुभाग चुनें।' : 'Please select a sub-section.';
+
+            // --- Section Chooser (Unchanged) ---
+            const sectionSelector = `
+                <div class="flex justify-center mb-6 space-x-4">
+                    <button onclick="appState.travel.subSection = 'booking'; appState.travel.results = null; appState.travel.paymentStep = 0; appState.travel.bookingStep = 0; renderTravelSection()" 
+                            class="py-2 px-4 rounded-full font-semibold ${travelState.subSection === 'booking' ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-indigo-100'}">
+                        ${currentLang === 'hi-IN' ? 'बुकिंग' : 'Booking'}
+                    </button>
+                    <button onclick="appState.travel.subSection = 'pnr'; appState.travel.results = null; appState.travel.paymentStep = 0; appState.travel.bookingStep = 0; renderTravelSection()" 
+                            class="py-2 px-4 rounded-full font-semibold ${travelState.subSection === 'pnr' ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-indigo-100'}">
+                        ${currentLang === 'hi-IN' ? 'पीएनआर स्टेटस' : 'PNR Status'}
+                    </button>
+                </div>
+                <hr class="mb-6 border-gray-200">
+            `;
+
+            // --- PNR Status Sub-Section (Unchanged) ---
+            if (travelState.subSection === 'pnr') {
+                 // ... (PNR rendering logic)
+                if (travelState.pnrStatus) {
+                    const s = travelState.pnrStatus;
+                    const statusClass = s.status === 'Confirmed' ? 'text-green-600 bg-green-100' : s.status === 'Not Found' ? 'text-red-600 bg-red-100' : 'text-orange-600 bg-orange-100';
+                    statusText = currentLang === 'hi-IN' ? `पीएनआर ${travelState.pnrNumber} का स्टेटस ${s.status} है।` : `PNR ${travelState.pnrNumber} status is ${s.status}.`;
+                    
+                    mainContent = `
+                        <div class="text-center p-8 bg-white rounded-xl shadow border border-gray-200">
+                            <h3 class="text-2xl font-bold mb-4 text-gray-800">${currentLang === 'hi-IN' ? 'पीएनआर स्टेटस' : 'PNR Status'}</h3>
+                            <div class="inline-block px-4 py-2 rounded-full font-bold ${statusClass}">${s.status}</div>
+                            
+                            <div class="mt-6 text-left inline-block space-y-2 text-gray-700">
+                                <p><strong>PNR:</strong> ${travelState.pnrNumber}</p>
+                                <p><strong>${currentLang === 'hi-IN' ? 'ट्रेन:' : 'Train:'}</strong> ${s.train || 'N/A'}</p>
+                                <p><strong>${currentLang === 'hi-IN' ? 'मार्ग:' : 'Route:'}</strong> ${s.route || 'N/A'}</p>
+                                <p><strong>${currentLang === 'hi-IN' ? 'कोच:' : 'Coach:'}</strong> ${s.coach || 'N/A'}</p>
+                                <p><strong>${currentLang === 'hi-IN' ? 'सीट:' : 'Seat:'}</strong> ${s.seat || 'N/A'}</p>
+                                <p><strong>${currentLang === 'hi-IN' ? 'प्रस्थान/आगमन:' : 'Dep/Arr:'}</strong> ${s.start || 'N/A'} / ${s.end || 'N/A'}</p>
+                            </div>
+                            <button onclick="appState.travel.pnrStatus = null; renderTravelSection()" class="mt-8 w-full bg-indigo-600 text-white p-3 rounded-lg text-sm hover:bg-indigo-700 transition">
+                                ${currentLang === 'hi-IN' ? 'नया पीएनआर खोजें' : 'Search New PNR'}
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    statusText = currentLang === 'hi-IN' ? "पीएनआर स्टेटस सेक्शन खुला। कृपया 10 अंकों का पीएनआर नंबर बताएं।" : "PNR Status section open. Please state the 10-digit PNR number.";
+                    mainContent = `
+                        <div class="text-center p-8">
+                            <p class="text-xl text-gray-600 mb-4">${currentLang === 'hi-IN' ? 'अपना पीएनआर नंबर बोलें:' : 'Speak your PNR Number:'}</p>
+                            <span class="text-6xl text-blue-500 block">🔢</span>
+                            <p class="mt-2 text-sm text-gray-500">${currentLang === 'hi-IN' ? 'उदाहरण: पीएनआर 1234567890' : 'Example: PNR 1234567890'}</p>
+                        </div>
+                    `;
+                }
+            } 
+            
+            // --- Booking Sub-Section ---
+            else { // booking
+                if (travelState.mode === 'Flight') {
+                    // ... (Flight Placeholder remains the same)
+                    statusText = currentLang === 'hi-IN' ? "फ्लाइट बुकिंग विकास में है। कृपया ट्रेन बुकिंग आज़माएं।" : "Flight booking is under development. Please try Train booking.";
+                    mainContent = `
+                        <div class="p-8 text-center bg-yellow-50 rounded-xl border border-yellow-200">
+                            <span class="text-5xl block mb-4">🚧</span>
+                            <h3 class="text-2xl font-bold text-yellow-800">${currentLang === 'hi-IN' ? 'फ्लाइट बुकिंग' : 'Flight Booking'}</h3>
+                            <p class="text-gray-700 mt-2">${currentLang === 'hi-IN' ? 'यह सुविधा जल्द ही उपलब्ध होगी। कृपया मोड बदलकर ट्रेन बुकिंग आज़माएं।' : 'This feature will be available soon. Please switch mode to Train Booking.'}</p>
+                            <button onclick="appState.travel.mode = 'Train'; renderTravelSection()" class="mt-4 bg-indigo-600 text-white p-3 rounded-lg font-semibold hover:bg-indigo-700 transition">
+                                ${currentLang === 'hi-IN' ? 'ट्रेन बुकिंग पर जाएं' : 'Go to Train Booking'}
+                            </button>
+                        </div>
+                    `;
+                } else if (travelState.paymentStep === 4) {
+                    // Step 4: Booking Confirmation
+                    const summaryEN = `Booking Confirmed! PNR ${travelState.finalPNR}. Train starts at ${travelState.selectedTrain.time} and ends at ${travelState.selectedTrain.endTime || '...'}.`;
+                    const summaryHI = `बुकिंग कन्फर्म! पीएनआर ${travelState.finalPNR}। ट्रेन ${travelState.selectedTrain.time} बजे शुरू होगी।`;
+                    
+                    statusText = currentLang === 'hi-IN' ? summaryHI : summaryEN;
+                    mainContent = renderBookingSummary(travelState, currentLang);
+                } else if (travelState.paymentStep === 3 || travelState.paymentStep === 2) {
+                    // Step 2 & 3: Payment Flow
+                    statusText = currentLang === 'hi-IN' ? 'कृपया भुगतान विवरण बोलें।' : 'Please state the payment details.';
+                    mainContent = renderPaymentForm(travelState, currentLang);
+                } else if (travelState.paymentStep === 1) {
+                    // Step 1: User Details
+                    statusText = currentLang === 'hi-IN' ? 'कृपया यात्री का नाम, आयु, लिंग और आधार संख्या बताएं।' : 'Please state passenger name, age, gender, and Aadhar number.';
+                    mainContent = renderPassengerForm(travelState, currentLang);
+                } else if (travelState.results) {
+                    // Step 0.5: Search Results
+                    statusText = currentLang === 'hi-IN' ? `${travelState.results.length} ट्रेनें मिलीं। कृपया ट्रेन का नाम या मूल्य बोलें।` : `${travelState.results.length} trains found. Please speak the train name or price.`;
+                    mainContent = renderTrainResults(travelState, currentLang);
+                } else {
+                    // Step 0: Search Form (New Guided Logic)
+                    
+                    let promptEN = "Welcome to booking. Please say 'from [City]'.";
+                    let promptHI = "बुकिंग में आपका स्वागत है। कृपया 'से [शहर]' बोलें।";
+
+                    if (travelState.bookingStep === 0) {
+                        promptEN = "Step 1 of 4: Please state your **starting city** (Source). Example: 'Delhi'.";
+                        promptHI = "चरण 1/4: कृपया अपना **प्रारंभिक शहर** (स्रोत) बताएं। उदाहरण: 'दिल्ली'।";
+                    } else if (travelState.bookingStep === 1) {
+                        promptEN = `Step 2 of 4: Source set to ${travelState.source}. Now, state your **destination city**. Example: 'Mumbai'.`;
+                        promptHI = `चरण 2/4: स्रोत ${travelState.source} सेट है। अब, अपना **गंतव्य शहर** बताएं। उदाहरण: 'मुंबई'।`;
+                    } else if (travelState.bookingStep === 2) {
+                        promptEN = `Step 3 of 4: Destination set to ${travelState.destination}. Choose a **coach type**: Sleeper, 2AC, or 3AC.`;
+                        promptHI = `चरण 3/4: गंतव्य ${travelState.destination} सेट है। **कोच प्रकार** चुनें: स्लीपर, 2AC, या 3AC।`;
+                    } else if (travelState.bookingStep === 3) {
+                        promptEN = `Step 4 of 4: Coach set to ${travelState.coach}. State the **travel date** in DD MM YYYY format. Example: '25 November 2025'.`;
+                        promptHI = `चरण 4/4: कोच ${travelState.coach} सेट है। **यात्रा की तारीख** DD MM YYYY फॉर्मेट में बताएं। उदाहरण: '25 नवंबर 2025'।`;
+                    } else if (travelState.bookingStep === 4) {
+                        promptEN = `All details received. Saying 'search' will show the results.`;
+                        promptHI = `सभी विवरण प्राप्त हुए। 'खोजें' बोलने पर परिणाम दिखेंगे।`;
+                    }
+                    
+                    statusText = currentLang === 'hi-IN' ? promptHI : promptEN;
+                    // Speak only if it's a new prompt
+                    if (assistantStatusEl.textContent !== statusText) {
+                        speak(statusText);
+                    }
+                    
+                    mainContent = renderSearchForm(travelState, currentLang, travelState.bookingStep);
+                }
+            }
+
+            // --- Final Render ---
+            contentEl.innerHTML = `
+                <div class="space-y-6">
+                    <h2 class="text-3xl font-bold text-gray-800 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-map-pin mr-2 text-indigo-600">
+                            <path d="M12 18s-4-6-4-8a4 4 0 0 1 8 0c0 2-4 8-4 8z"></path>
+                            <circle cx="12" cy="10" r="2"></circle>
+                        </svg>
+                        ${title}
+                    </h2>
+                    
+                    <button onclick="setSection('home')" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm flex items-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left mr-1">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                        ${currentLang === 'hi-IN' ? 'होम पर वापस' : 'Back to Home'}
+                    </button>
+                    
+                    ${sectionSelector}
+                    
+                    <div class="bg-gray-50 p-6 rounded-xl border border-gray-200">
+                        ${mainContent}
+                    </div>
+                </div>
+            `;
+
+            assistantStatusEl.textContent = statusText;
+
+            // Manually sync inputs if applicable
+            if (travelState.subSection === 'booking' && !travelState.results) {
+                document.getElementById('travel-mode').value = travelState.mode;
+                // Force focus on the current active step's input field for better UX
+                if (travelState.bookingStep === 0) document.getElementById('travel-source').focus();
+                if (travelState.bookingStep === 1) document.getElementById('travel-destination').focus();
+                if (travelState.bookingStep === 3) document.getElementById('travel-date').focus();
+                
+            }
+        }
+
+        // Helper Render Functions for Travel
+        function renderSearchForm(travelState, currentLang, currentStep) {
+            // Helper to get step class
+            const getStepClass = (step) => currentStep === step ? 'active' : (currentStep > step ? 'bg-green-500 text-white' : 'inactive');
+
+            const trainOptions = [
+                 { value: "Sleeper (SL)", label: "Sleeper (SL)", hindi: "स्लीपर (SL)" },
+                 { value: "AC 3 Tier (3A)", label: "AC 3 Tier (3A)", hindi: "AC 3 टीयर (3A)" },
+                 { value: "AC 2 Tier (2A)", label: "AC 2 Tier (2A)", hindi: "AC 2 टीयर (2A)" },
+            ];
+            
+            // Disable input if step is not active
+            const disableIfInactive = (step) => currentStep !== step && currentStep < 4;
+
+            return `
+                <div class="flex justify-center space-x-2 mb-4">
+                    <span class="step-pill ${getStepClass(0)}">1. ${currentLang === 'hi-IN' ? 'स्रोत' : 'Source'}</span>
+                    <span class="step-pill ${getStepClass(1)}">2. ${currentLang === 'hi-IN' ? 'गंतव्य' : 'Destination'}</span>
+                    <span class="step-pill ${getStepClass(2)}">3. ${currentLang === 'hi-IN' ? 'कोच' : 'Coach'}</span>
+                    <span class="step-pill ${getStepClass(3)}">4. ${currentLang === 'hi-IN' ? 'तारीख' : 'Date'}</span>
+                </div>
+                
+                <p class="text-sm font-semibold text-gray-700 mb-4">${currentLang === 'hi-IN' ? 'वर्तमान मोड: ट्रेन' : 'Current Mode: Train'}. ${currentLang === 'hi-IN' ? 'आवाज़ से विवरण दर्ज करें।' : 'Enter details by voice.'}</p>
+                <form id="travelForm" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="travel-mode" class="block text-sm font-medium text-gray-700 mb-1">${currentLang === 'hi-IN' ? 'यात्रा का साधन' : 'Travel Mode'}</label>
+                            <select id="travel-mode" class="input-style" onchange="appState.travel.mode = this.value; appState.travel.results = null; renderTravelSection()">
+                                <option value="Flight">${currentLang === 'hi-IN' ? 'हवाई जहाज' : 'Flight'}</option>
+                                <option value="Train">${currentLang === 'hi-IN' ? 'ट्रेन' : 'Train'}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="travel-coach" class="block text-sm font-medium text-gray-700 mb-1">${currentLang === 'hi-IN' ? 'कोच प्रकार' : 'Coach Type'}</label>
+                            <select id="travel-coach" class="input-style ${disableIfInactive(2) ? 'bg-gray-200' : 'bg-white'}" onchange="appState.travel.coach = this.value; if(appState.travel.bookingStep === 2) { appState.travel.bookingStep = 3; renderTravelSection(); }" disabled="${disableIfInactive(2) ? 'true' : 'false'}">
+                                ${trainOptions.map(option => `
+                                    <option value="${option.value}" ${travelState.coach === option.value ? 'selected' : ''}>
+                                        ${currentLang === 'hi-IN' ? option.hindi : option.label}
+                                    </option>
+                                `).join('')}
+                            </select>
+                             <p class="text-xs text-gray-500 mt-1">${currentLang === 'hi-IN' ? 'उपलब्ध: स्लीपर, 2AC, 3AC' : 'Available: Sleeper, 2AC, 3AC'}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="travel-source" class="block text-sm font-medium text-gray-700 mb-1">${currentLang === 'hi-IN' ? 'स्रोत' : 'Source'}</label>
+                            <input type="text" id="travel-source" placeholder="${currentLang === 'hi-IN' ? 'उदाहरण: दिल्ली' : 'e.g., Delhi'}" class="input-style ${disableIfInactive(0) ? 'bg-gray-200' : 'bg-white'}" value="${travelState.source}" oninput="appState.travel.source = this.value" disabled="${disableIfInactive(0) ? 'true' : 'false'}">
+                        </div>
+                        <div>
+                            <label for="travel-destination" class="block text-sm font-medium text-gray-700 mb-1">${currentLang === 'hi-IN' ? 'गंतव्य' : 'Destination'}</label>
+                            <input type="text" id="travel-destination" placeholder="${currentLang === 'hi-IN' ? 'उदाहरण: मुंबई' : 'e.g., Mumbai'}" class="input-style ${disableIfInactive(1) ? 'bg-gray-200' : 'bg-white'}" value="${travelState.destination}" oninput="appState.travel.destination = this.value" disabled="${disableIfInactive(1) ? 'true' : 'false'}">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="travel-date" class="block text-sm font-medium text-gray-700 mb-1">${currentLang === 'hi-IN' ? 'यात्रा की तारीख (DD-MM-YYYY)' : 'Travel Date (DD-MM-YYYY)'}</label>
+                        <input type="text" id="travel-date" placeholder="${currentLang === 'hi-IN' ? 'उदाहरण: 25 नवंबर 2025' : 'e.g., 25 November 2025'}" class="input-style ${disableIfInactive(3) ? 'bg-gray-200' : 'bg-white'}" value="${travelState.date}" oninput="appState.travel.date = this.value" disabled="${disableIfInactive(3) ? 'true' : 'false'}">
+                    </div>
+
+                    <button type="button" onclick="handleBooking()" disabled="${currentStep < 4 ? 'true' : 'false'}"
+                            class="w-full p-3 rounded-lg font-semibold transition duration-150 shadow-md ${currentStep < 4 ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 text-white hover:bg-green-600'}">
+                        ${currentLang === 'hi-IN' ? 'खोजें और बुक करें' : 'Search & Book'}
+                    </button>
+                    <p class="text-center text-red-500 text-sm mt-2">${currentStep < 4 ? (currentLang === 'hi-IN' ? `कृपया सभी ${4 - currentStep} चरण पूरे करें।` : `Please complete all ${4 - currentStep} steps.`) : ''}</p>
+                </form>
+            `;
+        }
+
+        // ... (Other render functions: renderTrainResults, renderPassengerForm, renderPaymentForm, renderBookingSummary, renderPaymentOption) ...
+        // ... (Healthcare, Education, Entertainment functions remain the same) ...
+
+        // --- RENDER & INIT FUNCTIONS (REMAINDER OF SCRIPT) ---
+        
+        /** Renders the Home Screen with section cards (Unchanged) */
+        function renderHomeSection() {
+            const currentLang = appState.currentLanguageCode;
+            assistantStatusEl.textContent = currentLang === 'hi-IN' ? "मैं आज आपकी कैसे मदद कर सकती हूँ? माइक पर टैप करें या कार्ड पर क्लिक करें।" : "How can I help you today? Tap the mic or click a card.";
+            contentEl.innerHTML = `
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 p-4">
+                    ${renderSectionCard('travel', 'Travel', 'Book tickets and check PNR status.', '✈️', 'यात्रा')}
+                    ${renderSectionCard('healthcare', 'Healthcare', 'Check symptoms and get advice.', '🏥', 'स्वास्थ्य सेवा')}
+                    ${renderSectionCard('education', 'Education', 'Start a course or learn something new.', '📚', 'शिक्षा')}
+                    ${renderSectionCard('entertainment', 'Entertainment', 'Watch movies, TV shows, and cartoons.', '🍿', 'मनोरंजन')}
+                </div>
+            `;
+        }
+
+        /** Helper to create an individual section card (Unchanged) */
+        function renderSectionCard(id, titleEN, descriptionEN, icon, titleHI) {
+            const primaryColorClass = 'text-indigo-600';
+            const bgColorClass = 'bg-indigo-50 hover:bg-indigo-100';
+            const currentLang = appState.currentLanguageCode;
+            
+            const title = currentLang === 'hi-IN' ? titleHI : titleEN;
+            const description = currentLang === 'hi-IN' ? (id === 'travel' ? 'टिकट बुक करें और पीएनआर स्टेटस जांचें।' : id === 'healthcare' ? 'लक्षण जांचें और सलाह लें।' : id === 'education' ? 'नया कोर्स शुरू करें।' : 'मूवी, टीवी शो और कार्टून देखें।') : descriptionEN;
+
+            return `
+                <button onclick="setSection('${id}'); processVoiceCommand('open ${id}')" 
+                        class="card ${bgColorClass} p-4 md:p-6 flex flex-col items-center text-center focus:outline-none focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50">
+                    <span class="text-4xl md:text-5xl mb-2">${icon}</span>
+                    <h3 class="text-lg md:text-xl font-semibold ${primaryColorClass}">${title}</h3>
+                    <p class="text-gray-500 text-xs md:text-sm mt-1">${description}</p>
+                </button>
+            `;
+        }
+
+        /** Sets the active section and re-renders the content */
+        function setSection(section) {
+            appState.activeSection = section;
+            // Reset flows on section change
+            appState.travel = { mode: 'Train', subSection: 'booking', bookingStep: 0, source: '', destination: '', date: '', coach: 'Sleeper (SL)', results: null, selectedTrain: null, paymentStep: 0, paymentMethod: '', pnrNumber: '', userDetails: { name: '', aadhar: '', age: '', gender: '' } };
+            appState.healthcare = { step: 1, symptoms: '', diagnosis: null }; 
+            appState.education = { step: 1, level: '', topic: '' }; 
+            appState.entertainment = { category: 'Movies', step: 0, title: '', video: null };
+            render();
+        }
+
+        /** Main render function to update content area based on state */
+        function render() {
+            // Ensure the language selector is set correctly
+            languageSelectEl.value = appState.currentLanguageCode;
+            
+            switch (appState.activeSection) {
+                case 'travel':
+                    renderTravelSection();
+                    break;
+                case 'healthcare':
+                    renderHealthcareSection();
+                    break;
+                case 'education':
+                    renderEducationSection();
+                    break;
+                case 'entertainment':
+                    renderEntertainmentSection();
+                    break;
+                case 'home':
+                default:
+                    renderHomeSection();
+                    break;
+            }
+        }
+
+        // --- INITIALIZATION ---
+        window.onload = function() {
+            appState.currentLanguageCode = languageSelectEl.value; 
+            setupVoice();
+            render();
+        }
+
+        // Add the missing helper functions used above (copied from previous full context for completeness)
+        function renderTrainResults(travelState, currentLang) {
+            const { source, destination, date, results } = travelState;
+            
+            let resultCards = '';
+            results.forEach((train, index) => {
+                const cls = train.selectedClass;
+                const status = cls.availability > 0 && typeof cls.availability === 'number' ? `${cls.availability} Seats Available` : cls.availability;
+                const statusHI = cls.availability > 0 && typeof cls.availability === 'number' ? `${cls.availability} सीटें उपलब्ध` : (cls.availability === 'Unlimited' ? 'असीमित उपलब्ध' : 'उपलब्ध नहीं');
+
+                resultCards += `
+                    <div class="bg-white p-4 mb-4 rounded-xl shadow-lg border border-indigo-100">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-900">${train.name} (${train.number})</h3>
+                                <p class="text-sm text-gray-500">${train.time} Departure (${train.duration} journey) in ${cls.name}</p>
+                            </div>
+                            <span class="text-xs font-semibold text-white bg-indigo-500 px-3 py-1 rounded-full">IRCTC</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm py-2">
+                            <span class="font-medium text-gray-700">${currentLang === 'hi-IN' ? 'मूल्य:' : 'Price:'}</span>
+                            <span class="font-bold text-2xl text-indigo-600">₹${cls.price}</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm pb-2">
+                            <span class="font-medium text-gray-700">${currentLang === 'hi-IN' ? 'उपलब्धता:' : 'Availability:'}</span>
+                            <span class="font-bold text-sm ${cls.availability > 10 ? 'text-green-600' : 'text-orange-500'}">${currentLang === 'hi-IN' ? statusHI : status}</span>
+                        </div>
+                        <button onclick="processTravelCommand('book the ${train.name}')" 
+                                class="mt-4 w-full bg-indigo-600 text-white p-2 rounded-lg text-sm hover:bg-indigo-700 transition">
+                            ${currentLang === 'hi-IN' ? 'यह ट्रेन बुक करें' : 'Book This Train'}
+                        </button>
+                    </div>
+                `;
+            });
+
+            return `
+                <h3 class="text-xl font-bold mb-4 text-gray-800">${currentLang === 'hi-IN' ? 'ट्रेन खोज परिणाम' : 'Train Search Results'}</h3>
+                <p class="text-sm font-semibold text-gray-700 mb-4">
+                    <span class="text-indigo-600">${source}</span> ${currentLang === 'hi-IN' ? 'से' : 'to'} 
+                    <span class="text-indigo-600">${destination}</span> ${currentLang === 'hi-IN' ? 'के लिए,' : 'for'} 
+                    <span class="text-indigo-600">${date}</span>
+                </p>
+                <div id="train-results-container">
+                    ${resultCards}
+                </div>
+                <button onclick="appState.travel.results = null; renderTravelSection()" class="mt-4 text-indigo-600 hover:text-indigo-800 font-medium">
+                    ${currentLang === 'hi-IN' ? 'नया खोजें' : 'New Search'}
+                </button>
+            `;
+        }
+
+        function renderPassengerForm(travelState, currentLang) {
+            const currentTrain = travelState.selectedTrain;
+            const c = currentTrain.classes.find(cls => cls.name === travelState.coach);
+
+            return `
+                <h3 class="text-xl font-bold mb-4 text-gray-800">${currentLang === 'hi-IN' ? 'यात्री विवरण' : 'Passenger Details'}</h3>
+                <div class="bg-indigo-50 p-4 rounded-lg mb-4 text-sm font-semibold">
+                    ${currentTrain.name} (${travelState.coach}) - ₹${c.price}
+                </div>
+                <p class="text-sm font-medium text-gray-700 mb-4">${currentLang === 'hi-IN' ? 'उदाहरण: ' : 'Example: '} "My name is **Amit**, age **25**, gender **male**."</p>
+
+                <div class="space-y-4">
+                    <input type="text" placeholder="${currentLang === 'hi-IN' ? 'नाम' : 'Name'}" class="input-style" value="${travelState.userDetails.name}" oninput="appState.travel.userDetails.name = this.value">
+                    <div class="grid grid-cols-2 gap-4">
+                        <input type="number" placeholder="${currentLang === 'hi-IN' ? 'आयु' : 'Age'}" class="input-style" value="${travelState.userDetails.age}" oninput="appState.travel.userDetails.age = this.value">
+                        <select class="input-style" onchange="appState.travel.userDetails.gender = this.value">
+                            <option value="">${currentLang === 'hi-IN' ? 'लिंग' : 'Gender'}</option>
+                            <option value="Male" ${travelState.userDetails.gender === 'Male' ? 'selected' : ''}>${currentLang === 'hi-IN' ? 'पुरुष' : 'Male'}</option>
+                            <option value="Female" ${travelState.userDetails.gender === 'Female' ? 'selected' : ''}>${currentLang === 'hi-IN' ? 'महिला' : 'Female'}</option>
+                        </select>
+                    </div>
+                    <input type="text" placeholder="${currentLang === 'hi-IN' ? 'आधार नंबर (वैकल्पिक)' : 'Aadhar Number (Optional)'}" class="input-style" value="${travelState.userDetails.aadhar}" oninput="appState.travel.userDetails.aadhar = this.value">
+                </div>
+                
+                <button onclick="processTravelCommand('pay')" class="mt-6 w-full bg-green-500 text-white p-3 rounded-lg font-semibold hover:bg-green-600 transition">
+                    ${currentLang === 'hi-IN' ? 'भुगतान पर जाएं' : 'Proceed to Payment'}
+                </button>
+                <button onclick="appState.travel.paymentStep = 0; appState.travel.selectedTrain = null; renderTravelSection()" class="mt-4 text-indigo-600 hover:text-indigo-800 font-medium w-full">
+                    ${currentLang === 'hi-IN' ? 'पीछे जाएं' : 'Go Back'}
+                </button>
+            `;
+        }
+
+        function renderPaymentForm(travelState, currentLang) {
+            const currentTrain = travelState.selectedTrain;
+            const c = currentTrain.classes.find(cls => cls.name === travelState.coach);
+            
+            const stepTitle = travelState.paymentStep === 2
+                ? (currentLang === 'hi-IN' ? 'भुगतान विधि चुनें' : 'Choose Payment Method')
+                : (currentLang === 'hi-IN' ? 'भुगतान विवरण दर्ज करें' : 'Enter Payment Details');
+
+            const paymentContent = travelState.paymentStep === 2 ? `
+                <p class="text-sm font-medium text-gray-700 mb-4">${currentLang === 'hi-IN' ? 'उदाहरण: ' : 'Example: '} "Use **UPI**" or "Pay with **Cash**"</p>
+                <div class="grid grid-cols-3 gap-4">
+                    ${renderPaymentOption('UPI', '📱', currentLang)}
+                    ${renderPaymentOption('Card', '💳', currentLang)}
+                    ${renderPaymentOption('Cash/Counter', '💵', currentLang)}
+                </div>
+            ` : `
+                <p class="text-lg font-medium text-gray-700 mb-4">${currentLang === 'hi-IN' ? `कृपया अपना ${travelState.paymentMethod} नंबर बोलें। उदाहरण: "नंबर 9876..."` : `Please state your ${travelState.paymentMethod} number. Example: "Number 9876..."`}</p>
+                <input type="text" value="${travelState.paymentDetails}" placeholder="${travelState.paymentMethod} ${currentLang === 'hi-IN' ? 'विवरण' : 'Details'}" class="input-style bg-white" disabled>
+                <p class="text-sm text-red-500 mt-2">${currentLang === 'hi-IN' ? 'सुरक्षा कारणों से, यह विवरण केवल डेमो के लिए प्रदर्शित किया गया है।' : 'For security, details are only displayed for this demo.'}</p>
+                <button onclick="processTravelCommand('number 9876543210')" class="mt-4 w-full bg-green-600 text-white p-3 rounded-lg font-semibold hover:bg-green-700 transition">
+                    ${currentLang === 'hi-IN' ? 'भुगतान अनुकरण करें' : 'Simulate Payment'}
+                </button>
+            `;
+
+            return `
+                <h3 class="text-xl font-bold mb-4 text-gray-800">${stepTitle}</h3>
+                <div class="bg-gray-100 p-4 rounded-lg mb-4 text-sm font-semibold flex justify-between">
+                    <span>${currentTrain.name} (${travelState.coach})</span>
+                    <span>₹${c.price}</span>
+                </div>
+                ${paymentContent}
+                <button onclick="appState.travel.paymentStep = ${travelState.paymentStep - 1}; renderTravelSection()" class="mt-4 text-indigo-600 hover:text-indigo-800 font-medium w-full">
+                    ${currentLang === 'hi-IN' ? 'पिछला चरण' : 'Previous Step'}
+                </button>
+            `;
+        }
+
+        function renderPaymentOption(method, icon, lang) {
+            const label = lang === 'hi-IN' ? (method === 'UPI' ? 'यूपीआई' : method === 'Card' ? 'कार्ड' : 'कैश/काउंटर') : method;
+            return `
+                <button onclick="processTravelCommand('${method}')"
+                        class="flex flex-col items-center justify-center p-4 bg-white rounded-xl shadow hover:bg-indigo-50 transition border border-gray-200">
+                    <span class="text-3xl mb-2">${icon}</span>
+                    <span class="text-sm font-medium text-gray-700">${label}</span>
+                </button>
+            `;
+        }
+        
+        function renderBookingSummary(travelState, currentLang) {
+            const t = travelState.selectedTrain;
+            const c = t.classes.find(cls => cls.name === travelState.coach);
+
+            return `
+                <div class="text-center p-8 bg-green-50 rounded-xl border border-green-200">
+                    <span class="text-6xl mb-4 block">✅</span>
+                    <h2 class="text-3xl font-bold text-green-800 mb-2">${currentLang === 'hi-IN' ? 'बुकिंग सफल!' : 'Booking Successful!'}</h2>
+                    <p class="text-gray-700 font-medium">${currentLang === 'hi-IN' ? 'पीएनआर:' : 'PNR:'} <span class="text-green-600 font-bold">${travelState.finalPNR}</span></p>
+                    
+                    <div class="mt-6 text-left inline-block space-y-2">
+                        <p><strong>${currentLang === 'hi-IN' ? 'ट्रेन:' : 'Train:'}</strong> ${t.name} (${t.number})</p>
+                        <p><strong>${currentLang === 'hi-IN' ? 'मार्ग:' : 'Route:'}</strong> ${travelState.source} &rarr; ${travelState.destination}</p>
+                        <p><strong>${currentLang === 'hi-IN' ? 'तारीख:' : 'Date:'}</strong> ${travelState.date}</p>
+                        <p><strong>${currentLang === 'hi-IN' ? 'समय:' : 'Time:'}</strong> ${t.time} ${currentLang === 'hi-IN' ? 'से शुरू' : 'Start'} / ${t.endTime || '08:30'} ${currentLang === 'hi-IN' ? 'पर समाप्त' : 'End'}</p>
+                        <p><strong>${currentLang === 'hi-IN' ? 'कोच:' : 'Coach:'}</strong> ${travelState.coach} (₹${c.price})</p>
+                        <p><strong>${currentLang === 'hi-IN' ? 'यात्री:' : 'Passenger:'}</strong> ${travelState.userDetails.name} (${travelState.userDetails.age})</p>
+                        <p><strong>${currentLang === 'hi-IN' ? 'भुगतान:' : 'Payment:'}</strong> ${travelState.paymentMethod}</p>
+                    </div>
+                    <button onclick="setSection('home')" class="mt-8 w-full bg-indigo-600 text-white p-3 rounded-lg text-sm hover:bg-indigo-700 transition">
+                        ${currentLang === 'hi-IN' ? 'होम पर जाएं' : 'Go to Home'}
+                    </button>
+                </div>
+            `;
+        }
+
+        // --- Updated function processHealthcareCommand(transcript) ---
+function processHealthcareCommand(transcript) {
+    const healthState = appState.healthcare;
+    const currentLang = appState.currentLanguageCode;
+    const t = transcript.toLowerCase();
+
+    if (healthState.step === 0) {
+        // Step 0: Initial prompt is handled by setSection/intent detection
+        healthState.step = 1; // Move to listening phase
+        renderHealthcareSection();
+        return;
+    }
+
+    if (healthState.step === 1) {
+        // Step 1: Listening for Symptoms
+        let symptomsKey = null;
+        
+        if (t.includes('fever') || t.includes('bukhar')) { 
+            symptomsKey = 'fever'; 
+        } else if (t.includes('cough') || t.includes('khansi')) { 
+            symptomsKey = 'cough'; 
+        }
+
+        // Check if input is substantial OR contains a keyword
+        if (symptomsKey || (transcript.length > 5 && !t.includes(languageMap[currentLang].go_home))) {
+            
+            // CRITICAL: Store the full transcript spoken by the user
+            healthState.symptoms = transcript; 
+            
+            // Select mock diagnosis (use keyword diagnosis or default to 'cough')
+            healthState.diagnosis = mockDiagnosis[symptomsKey] || mockDiagnosis['cough'];
+            
+            // Directly jump to Step 3 (Full Treatment Display)
+            healthState.step = 3; 
+            
+            renderHealthcareSection();
+            return;
+        } else {
+            // Re-prompt if the input was too short or non-committal
+            speak(currentLang === 'hi-IN' ? "कृपया अपने लक्षण स्पष्ट रूप से बोलें, जैसे: 'मुझे बुखार और खांसी है'।" : "Please speak your symptoms clearly, such as: 'I have a fever and cough'.");
+        }
+        return;
+    }
+
+    // --- Steps 2/3: Treatment screen is visible, handling follow-up commands ---
+    if (healthState.step >= 2) {
+        if (t.includes('new') || t.includes('naye') || t.includes('nayi') || t.includes('restart')) {
+            healthState.step = 1;
+            healthState.symptoms = '';
+            healthState.diagnosis = null;
+            renderHealthcareSection();
+            return;
+        } else if (t.includes('home')) {
+            setSection('home');
+            return;
+        } else {
+            speak(currentLang === 'hi-IN' ? "आप उपचार देख रहे हैं। नए लक्षण के लिए 'नया' बोलें, या 'होम पर जाओ'।" : "You are viewing treatment. Say 'new' for new symptoms, or 'go home'.");
+            return;
+        }
+    }
+}
+
+        // --- Updated function renderHealthcareSection() ---
+function renderHealthcareSection() {
+    const healthState = appState.healthcare;
+    const currentLang = appState.currentLanguageCode;
+    const title = currentLang === 'hi-IN' ? 'स्वास्थ्य सहायक' : 'Healthcare Assistant';
+    
+    let mainContent = '';
+    let statusText = '';
+    
+    if (healthState.step === 1) {
+        statusText = currentLang === 'hi-IN' ? "कृपया मुझे अपने लक्षण विस्तार से बताएं।" : "Please describe your symptoms in detail.";
+        mainContent = `
+            <p class="text-xl text-gray-600">${currentLang === 'hi-IN' ? 'आप क्या महसूस कर रहे हैं?' : 'What are you feeling?'}</p>
+            <div class="mt-4 text-center">
+                <span class="text-6xl text-blue-500 block">🗣️</span>
+                <p class="mt-2 text-sm text-gray-500">${currentLang === 'hi-IN' ? 'माइक दबाएं और बोलें' : 'Press mic and speak'}</p>
+            </div>
+        `;
+        speak(statusText);
+
+    } else if (healthState.step >= 2 && healthState.diagnosis) {
+        const diagnosis = healthState.diagnosis;
+        const advice = currentLang === 'hi-IN' ? diagnosis.advice_hi : diagnosis.advice;
+        const dosage = currentLang === 'hi-IN' ? diagnosis.dosage_hi : diagnosis.dosage;
+        const diagName = diagnosis.name;
+
+        // Since we jump directly to step 3, we combine the speech output
+        statusText = currentLang === 'hi-IN' ? `${diagName} के लिए पूरा उपचार और खुराक नीचे दी गई है।` : `Full treatment and dosage for ${diagName} are listed below.`;
+        speak(currentLang === 'hi-IN' ? `उपचार और खुराक: ${dosage}` : `Treatment and Dosage: ${dosage}`);
+        
+        mainContent = `
+            <div id="diagnosis-container" class="bg-white p-4 rounded-xl shadow-inner space-y-4 text-left">
+                <h3 class="text-2xl font-bold text-red-600">${diagName}</h3>
+                
+                <p class="text-sm text-gray-500">${currentLang === 'hi-IN' ? 'आपके लक्षण: ' : 'Your Symptoms: '} ${healthState.symptoms}</p>
+                
+                <div class="border-l-4 border-blue-500 pl-4 py-2 bg-blue-50">
+                    <p class="font-semibold text-blue-800">${currentLang === 'hi-IN' ? 'सलाह' : 'Advice'}:</p>
+                    <p class="text-gray-700">${advice}</p>
+                </div>
+                
+                <div class="border-l-4 border-green-500 pl-4 py-2 bg-green-50">
+                    <p class="font-semibold text-green-800">${currentLang === 'hi-IN' ? 'खुराक/उपचार' : 'Dosage/Treatment'}:</p>
+                    <p class="text-gray-700">${dosage}</p>
+                </div>
+
+                <button onclick="processHealthcareCommand('new symptoms')" class="mt-4 w-full bg-gray-200 text-gray-700 p-3 rounded-lg font-semibold hover:bg-gray-300 transition">
+                    ${currentLang === 'hi-IN' ? 'नए लक्षण बताएं' : 'State New Symptoms'}
+                </button>
+            </div>
+        `;
+    } else {
+        statusText = currentLang === 'hi-IN' ? "एआई डॉक्टर से बात करने के लिए तैयार।" : "Ready to speak with the AI Doctor.";
+    }
+
+    // ... (Final HTML Render remains the same) ...
+    contentEl.innerHTML = `
+        <div class="space-y-6">
+            <h2 class="text-3xl font-bold text-gray-800 flex items-center">
+                <span class="text-red-600 mr-2">🩺</span> ${title}
+            </h2>
+            
+    <button onclick="setSection('home')" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm flex items-center mb-4">
+         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left mr-1"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+         ${currentLang === 'hi-IN' ? 'होम पर वापस' : 'Back to Home'}
+    </button>
+            <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 text-center space-y-4">
+                ${mainContent}
+            </div>
+        </div>
+    `;
+    assistantStatusEl.textContent = statusText;
+}
+
+        function processEducationCommand(transcript) {
+            const eduState = appState.education;
+            const currentLang = appState.currentLanguageCode;
+            const t = transcript;
+
+            if (eduState.step === 0) {
+                // Step 0: Initial prompt
+                eduState.step = 1;
+                renderEducationSection();
+                return;
+            }
+
+            if (eduState.step === 1) {
+                // Step 1: Listening for Level/Topic
+                let level = null;
+                let topic = null;
+                
+                if (t.includes('btech') || t.includes('b.tech') || t.includes('engineering')) { level = 'B.Tech'; } 
+                else if (t.includes('mba')) { level = 'MBA'; }
+                else if (t.includes('class') && t.includes('10')) { level = 'Class 10'; }
+                
+                if (t.includes('thermodynamics') || t.includes('thermo')) { topic = 'Thermodynamics'; } 
+                else if (t.includes('maths') || t.includes('ganit')) { topic = 'Mathematics'; }
+                
+                if (level && topic) {
+                    eduState.level = level;
+                    eduState.topic = topic;
+                    eduState.step = 2; // Move to content
+                    renderEducationSection();
+                    return;
+                } else {
+                    speak(currentLang === 'hi-IN' ? "कृपया अपनी कक्षा या डिग्री, और विषय बोलें। उदाहरण: 'बीटेक तीसरे वर्ष का थर्मोडायनामिक्स'" : "Please state your class or degree, and subject. Example: 'BTech third year Thermodynamics'");
+                }
+                return;
+            }
+        }
+
+        /** Renders the Education flow based on the current step */
+        function renderEducationSection() {
+            const eduState = appState.education;
+            const currentLang = appState.currentLanguageCode;
+            const title = currentLang === 'hi-IN' ? 'शिक्षा केंद्र' : 'Education Hub';
+            
+            let mainContent = '';
+            let statusText = '';
+
+            if (eduState.step === 1) {
+                statusText = currentLang === 'hi-IN' ? "कृपया अपनी कक्षा/डिग्री और विषय बोलें।" : "Please state your class/degree and subject.";
+                mainContent = `
+                    <p class="text-xl text-gray-600">${currentLang === 'hi-IN' ? 'आप क्या पढ़ना चाहेंगे?' : 'What would you like to study?'}</p>
+                    <div class="mt-4 text-center">
+                        <span class="text-6xl text-green-500 block">🎓</span>
+                        <p class="mt-2 text-sm text-gray-500">${currentLang === 'hi-IN' ? 'उदाहरण: बीटेक थर्मोडायनामिक्स' : 'Example: BTech Thermodynamics'}</p>
+                    </div>
+                `;
+                speak(statusText);
+
+            } else if (eduState.step === 2) {
+                const content = mockEducationContent['btech']; // Only B.Tech mock available
+                const contentTitle = currentLang === 'hi-IN' ? content.title_hi : content.title;
+                const contentText = currentLang === 'hi-IN' ? content.text_hi : content.text;
+                const contentQuiz = currentLang === 'hi-IN' ? content.quiz_hi : content.quiz;
+
+                statusText = currentLang === 'hi-IN' ? `${eduState.topic} के लिए शिक्षण सामग्री उपलब्ध है। 'क्विज़ शुरू करें' बोलें।` : `Learning content for ${eduState.topic} is available. Say 'start quiz'.`;
+                speak(currentLang === 'hi-IN' ? `${eduState.topic} पर सामग्री उपलब्ध है। ${contentTitle}` : `Content for ${eduState.topic} is ready. ${contentTitle}`);
+
+                mainContent = `
+                    <div id="content-viewer" class="bg-white p-4 rounded-xl shadow-inner space-y-4 text-left">
+                        <h3 class="text-2xl font-bold text-purple-600">${contentTitle}</h3>
+                        <p class="text-sm text-gray-500">${eduState.level} | ${eduState.topic}</p>
+                        
+                        <div class="aspect-video bg-gray-200 rounded-lg flex items-center justify-center">
+                            <span class="text-xl text-gray-600">${currentLang === 'hi-IN' ? 'AI जनरेटेड वीडियो' : 'AI Generated Video (Simulated)'}</span>
+                        </div>
+
+                        <p class="text-gray-700">${contentText}</p>
+
+                        <div class="pt-4 border-t mt-4">
+                            <h4 class="text-xl font-semibold text-purple-700 mb-2">${currentLang === 'hi-IN' ? 'क्विज़ प्रश्न' : 'Quiz Questions'}</h4>
+                            <ul class="list-disc list-inside space-y-1">
+                                <li>$${contentQuiz[0]}$</li>
+                                <li>$${contentQuiz[1]}$</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <button onclick="eduState.step=1; renderEducationSection()" class="mt-4 w-full bg-indigo-600 text-white p-3 rounded-lg font-semibold hover:bg-indigo-700 transition">
+                        ${currentLang === 'hi-IN' ? 'नया विषय खोजें' : 'Search New Topic'}
+                    </button>
+                `;
+            } else {
+                 statusText = currentLang === 'hi-IN' ? "शिक्षा केंद्र में आपका स्वागत है।" : "Welcome to the Education Hub.";
+            }
+
+            contentEl.innerHTML = `
+                <div class="space-y-6">
+                    <h2 class="text-3xl font-bold text-gray-800 flex items-center">
+                        <span class="text-purple-600 mr-2">📚</span> ${title}
+                    </h2>
+            
+<button onclick="setSection('home')" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm flex items-center mb-4">
+
+    ${currentLang === 'hi-IN' ? 'होम पर वापस' : 'Back to Home'}
+</button>
+                    <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 text-center space-y-4">
+                        ${mainContent}
+                    </div>
+                </div>
+            `;
+            assistantStatusEl.textContent = statusText;
+        }
+
+
+        
+        function renderEntertainmentSection() {
+            const enterState = appState.entertainment;
+            const currentLang = appState.currentLanguageCode;
+            const title = currentLang === 'hi-IN' ? 'मनोरंजन हब' : 'Entertainment Hub';
+            
+            let mainContent = '';
+            let statusText = '';
+            
+            const categoryCards = ['Movies', 'TV Shows', 'Cartoons'].map(cat => {
+                const titleKey = cat === 'Movies' ? 'मूवी' : cat === 'TV Shows' ? 'टीवी शो' : 'कार्टून';
+                const isActive = enterState.category === cat && enterState.step === 1;
+                return `
+                    <button onclick="appState.entertainment.category = '${cat}'; appState.entertainment.step = 1; appState.entertainment.title = ''; renderEntertainmentSection()"
+                        class="flex flex-col items-center p-4 rounded-xl shadow transition ${isActive ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'}"
+                    >
+                        <span class="text-3xl">${cat === 'Movies' ? '🎬' : cat === 'TV Shows' ? '📺' : '👧'}</span>
+                        <span class="text-sm font-medium mt-2">${currentLang === 'hi-IN' ? titleKey : cat}</span>
+                    </button>
+                `;
+            }).join('');
+            
+            if (enterState.step === 0) {
+                statusText = currentLang === 'hi-IN' ? "कृपया एक मनोरंजन श्रेणी चुनें: मूवी, टीवी शो या कार्टून?" : "Please select an entertainment category: Movie, TV Show, or Cartoon?";
+                mainContent = `<div class="grid grid-cols-3 gap-4">${categoryCards}</div>`;
+                speak(statusText);
+            } else if (enterState.step === 1) {
+                statusText = currentLang === 'hi-IN' ? `आप ${enterState.category} अनुभाग में हैं। कृपया एक शीर्षक बोलें।` : `You are in the ${enterState.category} section. Please speak a title.`;
+                mainContent = `
+                    <p class="text-xl text-gray-600 mb-4">${currentLang === 'hi-IN' ? `आप कौन सी ${enterState.category} देखना चाहेंगे?` : `Which ${enterState.category} would you like to watch?`}</p>
+                    <div class="grid grid-cols-3 gap-4 mb-6">${categoryCards}</div>
+                    <div class="bg-white p-4 rounded-xl shadow-inner text-left">
+                        <h4 class="text-lg font-semibold mb-2">${currentLang === 'hi-IN' ? 'उपलब्ध शीर्षक (डेमो)' : 'Available Titles (Demo)'}:</h4>
+                        <ul class="list-disc list-inside space-y-1 text-sm text-gray-700">
+                            ${mockEntertainmentContent[enterState.category].list.map(t => `<li>${t}</li>`).join('')}
+                        </ul>
+                        <p class="text-sm text-red-500 mt-2">${currentLang === 'hi-IN' ? 'कृपया इनमें से एक शीर्षक बोलें।' : 'Please speak one of these titles.'}</p>
+                    </div>
+                `;
+            } else if (enterState.step === 2) {
+                statusText = currentLang === 'hi-IN' ? `${enterState.title} चल रहा है। 'नया शीर्षक खोजें' बोलें।` : `${enterState.title} is now playing. Say 'search new title'.`;
+                speak(currentLang === 'hi-IN' ? `${enterState.title} शुरू हो गया है।` : `${enterState.title} has started.`);
+                mainContent = `
+                    <div id="content-viewer" class="bg-white rounded-xl shadow-inner space-y-4 text-left">
+                        <h3 class="text-2xl font-bold text-red-600 mb-2">${enterState.title} (${enterState.category})</h3>
+                        <div class="aspect-video bg-gray-900 rounded-lg overflow-hidden">
+                            <iframe width="100%" height="100%" src="${enterState.video}?autoplay=1&rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>
+                        <p class="text-sm text-red-500 mt-2">${currentLang === 'hi-IN' ? 'यह एक सिमुलेटेड वीडियो है।' : 'This is a simulated video.'}</p>
+                    </div>
+                    <button onclick="enterState.step=1; enterState.title=''; renderEntertainmentSection()" class="mt-4 w-full bg-indigo-600 text-white p-3 rounded-lg font-semibold hover:bg-indigo-700 transition">
+                        ${currentLang === 'hi-IN' ? 'नया शीर्षक खोजें' : 'Search New Title'}
+                    </button>
+                `;
+            }
+
+            contentEl.innerHTML = `
+                <div class="space-y-6">
+                    <h2 class="text-3xl font-bold text-gray-800 flex items-center">
+                        <span class="text-pink-600 mr-2">🍿</span> ${title}
+                    </h2>
+                    <button onclick="setSection('home')" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm flex items-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left mr-1"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                        ${currentLang === 'hi-IN' ? 'होम पर वापस' : 'Back to Home'}
+                    </button>
+                    <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 text-center space-y-4">
+                        ${mainContent}
+                    </div>
+                </div>
+            `;
+            assistantStatusEl.textContent = statusText;
+        }
+
+        function processEntertainmentCommand(transcript) {
+            const enterState = appState.entertainment;
+            const currentLang = appState.currentLanguageCode;
+            const t = transcript;
+
+            if (enterState.step === 0) {
+                let category = null;
+
+                if (t.includes('movie') || t.includes('film')) { category = 'Movies'; } 
+                else if (t.includes('tv show') || t.includes('television')) { category = 'TV Shows'; }
+                else if (t.includes('cartoon') || t.includes('animation')) { category = 'Cartoons'; }
+                
+                if (category) {
+                    enterState.category = category;
+                    enterState.step = 1;
+                    renderEntertainmentSection();
+                    return;
+                } else {
+                    speak(currentLang === 'hi-IN' ? "कृपया चुनें: मूवी, टीवी शो या कार्टून?" : "Please choose: Movie, TV Show, or Cartoon?");
+                }
+                return;
+            }
+
+            if (enterState.step === 1) {
+                const titles = mockEntertainmentContent[enterState.category].list.map(s => s.toLowerCase());
+                let titleMatch = titles.find(title => t.includes(title.toLowerCase()));
+
+                if (titleMatch) {
+                    enterState.title = capitalizeWords(titleMatch);
+                    enterState.video = mockEntertainmentContent[enterState.category].video; 
+                    enterState.step = 2; 
+                    renderEntertainmentSection();
+                    return;
+                } else if (t.length > 5 && !t.includes(languageMap[currentLang].go_home)) {
+                    enterState.title = mockEntertainmentContent[enterState.category].list[0];
+                    enterState.video = mockEntertainmentContent[enterState.category].video;
+                    enterState.step = 2; 
+                    renderEntertainmentSection();
+                    return;
+                } else {
+                    speak(currentLang === 'hi-IN' ? `आप ${enterState.category} अनुभाग में हैं। कृपया एक शीर्षक बोलें।` : `You are in the ${enterState.category} section. Please speak a title.`);
+                }
+                return;
+            }
+        }
+
+
+    </script>
+</body>
+</html>
