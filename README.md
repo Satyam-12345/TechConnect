@@ -16,7 +16,7 @@ This repository contains the functional client-side prototype built to validate 
 
 To run this code, follow thsi steps:
 
-Clone this repository: git clone [Your Repository URL]
+Clone this repository: git clone Techconnect.html
 
 Open the index.html file in any modern web browser.
 
